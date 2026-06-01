@@ -3,7 +3,7 @@
 
 #include "CXPlayerController.h"
 
-#include "Kismet/KismetSystemLibrary.h"
+#include "ChatX.h"
 #include "UI/CXChatInput.h"
 
 void ACXPlayerController::BeginPlay()
@@ -36,5 +36,5 @@ void ACXPlayerController::SetChatMessageString(const FString& InChatMessageStrin
 
 void ACXPlayerController::PrintChatMessageString(const FString& InChatMessageString)
 {
-	UKismetSystemLibrary::PrintString(this, ChatMessageString, true, true, FLinearColor::Red, 5.0f);
+	ChatXFunctionLibrary::MyPrintString(this, InChatMessageString);
 }
