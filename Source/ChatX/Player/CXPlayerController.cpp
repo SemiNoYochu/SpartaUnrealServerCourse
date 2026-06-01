@@ -4,6 +4,7 @@
 #include "CXPlayerController.h"
 
 #include "ChatX.h"
+#include "EngineUtils.h"
 #include "UI/CXChatInput.h"
 
 void ACXPlayerController::BeginPlay()
@@ -31,10 +32,46 @@ void ACXPlayerController::BeginPlay()
 void ACXPlayerController::SetChatMessageString(const FString& InChatMessageString)
 {
 	ChatMessageString = InChatMessageString;
-	PrintChatMessageString(ChatMessageString);
+	if (IsLocalController() == true)
+	{
+		ServerRPCPrintChatMessageString(InChatMessageString);
+	}
 }
 
 void ACXPlayerController::PrintChatMessageString(const FString& InChatMessageString)
 {
 	ChatXFunctionLibrary::MyPrintString(this, InChatMessageString);
+}
+
+void ACXPlayerController::ClientRPCPrintChatMessageString_Implementation(const FString& InChatMessageString)
+{
+	PrintChatMessageString(InChatMessageString);
+}
+
+void ACXPlayerController::ServerRPCPrintChatMessageString_Implementation(const FString& InChatMessageString)
+{
+	// ServerRPC: Server에서 실행된다.
+	// 내부 로직: Server에 존재하는 ACXPlayerController를 Iterator를 통해 순회하여, 등록된 모든 ACXPlayerController가 존재하는 Client에 ClientRPC 함수를 호출한다.
+#pragma region ServerRPC
+	// PrintChatMessageString(InChatMessageString);
+	
+	// for (TActorIterator<ACXPlayerController> It(GetWorld()); It; ++It)
+	// {
+	// 	ACXPlayerController* CXPlayerController = *It;
+	// 	if (IsValid(CXPlayerController) == true)
+	// 	{
+	// 		CXPlayerController->ClientRPCPrintChatMessageString(InChatMessageString);
+	// 	}
+	// }
+#pragma endregion 
+	
+	// NetMulticastRPC: Server + Actor가 존재하는 Client에서 실행된다.
+#pragma region NetMulticastRPC
+	NetMulticastRPCPrintCastMessageString(InChatMessageString);
+#pragma endregion
+}
+
+void ACXPlayerController::NetMulticastRPCPrintCastMessageString_Implementation(const FString& InChatMessageString)
+{
+	PrintChatMessageString(InChatMessageString);
 }
