@@ -65,7 +65,7 @@ void ACXPlayerController::ServerRPCPrintChatMessageString_Implementation(const F
 	// }
 #pragma endregion 
 	
-	// NetMulticastRPC: Server + Actor가 존재하는 Client에서 실행된다.
+	// NetMulticastRPC: Server + 모든 Actor에 호출하지만? 해당 Actor를 보유하지 않은 클라이언트는 실행되지 않고 Drop된다?
 #pragma region NetMulticastRPC
 	NetMulticastRPCPrintCastMessageString(InChatMessageString);
 #pragma endregion
