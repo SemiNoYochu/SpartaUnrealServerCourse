@@ -28,6 +28,8 @@ public:
 	virtual void BeginPlay() override;
 	
 	void PrintChatMessageString(ACXPlayerController* InChattingPlayerController, const FString& InChatMessageString);
+	
+	bool IncreaseGuessCount(ACXPlayerController* InChattingPlayerController);
 
 protected:
 	FString SecretNumberString;

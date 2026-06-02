@@ -6,21 +6,28 @@
 #include "CXGameStateBase.h"
 #include "EngineUtils.h"
 #include "Player/CXPlayerController.h"
+#include "Player/CXPlayerState.h"
 
 void ACXGameModeBase::OnPostLogin(AController* NewPlayer)
 {
 	Super::OnPostLogin(NewPlayer);
 	
-	ACXGameStateBase* CXGameStateBase = GetGameState<ACXGameStateBase>();
-	if (IsValid(CXGameStateBase) == true)
-	{
-		CXGameStateBase->MulticastRPCBroadcastLoginMessage(TEXT("XXXXXXX"));
-	}
-	
 	ACXPlayerController* CXPlayerController = Cast<ACXPlayerController>(NewPlayer);
 	if (IsValid(CXPlayerController) == true)
 	{
 		AllPlayerControllers.Add(CXPlayerController);
+
+		ACXPlayerState* CXPS = CXPlayerController->GetPlayerState<ACXPlayerState>();
+		if (IsValid(CXPS) == true)
+		{
+			CXPS->PlayerNameString = TEXT("Player") + FString::FromInt(AllPlayerControllers.Num());
+		}
+
+		ACXGameStateBase* CXGameStateBase =  GetGameState<ACXGameStateBase>();
+		if (IsValid(CXGameStateBase) == true)
+		{
+			CXGameStateBase->MulticastRPCBroadcastLoginMessage(CXPS->PlayerNameString);
+		}
 	}
 }
 
@@ -127,16 +134,32 @@ void ACXGameModeBase::PrintChatMessageString(ACXPlayerController* InChattingPlay
 	FString ChatMessageString = InChatMessageString;
 	int Index = InChatMessageString.Len() - 3;
 	FString GuessNumberString = InChatMessageString.RightChop(Index);
+	
+	FString ChatPlayerNameString;
+	FString InChatMessage;
+	InChatMessageString.Split(FString(":"), &ChatPlayerNameString, &InChatMessage);
+	
 	if (IsGuessNumberString(GuessNumberString) == true)
 	{
 		FString JudgeResultString = JudgeResult(SecretNumberString, GuessNumberString);
-		for (TActorIterator<ACXPlayerController> It(GetWorld()); It; ++It)
+		
+		if (IncreaseGuessCount(InChattingPlayerController) == true)
 		{
-			ACXPlayerController* CXPlayerController = *It;
-			if (IsValid(CXPlayerController) == true)
+			for (TActorIterator<ACXPlayerController> It(GetWorld()); It; ++It)
 			{
-				FString CombinedMessageString = GuessNumberString + TEXT(" -> ") + JudgeResultString;
-				CXPlayerController->ClientRPCPrintChatMessageString(CombinedMessageString);
+				ACXPlayerController* CXPlayerController = *It;
+				if (IsValid(CXPlayerController) == true)
+				{
+					FString CombinedMessageString 
+					= ChatPlayerNameString 
+					+ FString("(") 
+					+ FString::FromInt(InChattingPlayerController->GetPlayerState<ACXPlayerState>()->CurrentGuessCount) 
+					+ FString("/")
+					+ FString::FromInt(InChattingPlayerController->GetPlayerState<ACXPlayerState>()->MaxGuessCount) 
+					+ FString(")") 
+					+ GuessNumberString + TEXT(" -> ") + JudgeResultString;
+					CXPlayerController->ClientRPCPrintChatMessageString(CombinedMessageString);
+				}
 			}
 		}
 	}
@@ -151,4 +174,17 @@ void ACXGameModeBase::PrintChatMessageString(ACXPlayerController* InChattingPlay
 			}
 		}
 	}
+}
+
+bool ACXGameModeBase::IncreaseGuessCount(ACXPlayerController* InChattingPlayerController)
+{
+	ACXPlayerState* CXPS = InChattingPlayerController->GetPlayerState<ACXPlayerState>();
+	if (IsValid(CXPS) == true)
+	{
+		CXPS->CurrentGuessCount++;
+		
+		return true;
+	}
+	
+	return false;
 }

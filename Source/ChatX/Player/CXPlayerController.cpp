@@ -4,7 +4,7 @@
 #include "CXPlayerController.h"
 
 #include "ChatX.h"
-#include "EngineUtils.h"
+#include "CXPlayerState.h"
 #include "Game/CXGameModeBase.h"
 #include "Kismet/GameplayStatics.h"
 #include "UI/CXChatInput.h"
@@ -34,9 +34,18 @@ void ACXPlayerController::BeginPlay()
 void ACXPlayerController::SetChatMessageString(const FString& InChatMessageString)
 {
 	ChatMessageString = InChatMessageString;
+	
 	if (IsLocalController() == true)
 	{
-		ServerRPCPrintChatMessageString(InChatMessageString);
+		ACXPlayerState* CXPS = GetPlayerState<ACXPlayerState>();
+		if (IsValid(CXPS) == true)
+		{
+			// FString CombinedMessageString = CXPS->GetPlayerInfoString() + TEXT(": ") + InChatMessageString;
+
+			FString CombinedMessageString = CXPS->PlayerNameString + TEXT(": ") + InChatMessageString;
+			
+			ServerRPCPrintChatMessageString(CombinedMessageString);
+		}
 	}
 }
 
