@@ -5,6 +5,8 @@
 
 #include "ChatX.h"
 #include "EngineUtils.h"
+#include "Game/CXGameModeBase.h"
+#include "Kismet/GameplayStatics.h"
 #include "UI/CXChatInput.h"
 
 void ACXPlayerController::BeginPlay()
@@ -50,25 +52,15 @@ void ACXPlayerController::ClientRPCPrintChatMessageString_Implementation(const F
 
 void ACXPlayerController::ServerRPCPrintChatMessageString_Implementation(const FString& InChatMessageString)
 {
-	// ServerRPC: Server에서 실행된다.
-	// 내부 로직: Server에 존재하는 ACXPlayerController를 Iterator를 통해 순회하여, 등록된 모든 ACXPlayerController가 존재하는 Client에 ClientRPC 함수를 호출한다.
-#pragma region ServerRPC
-	// PrintChatMessageString(InChatMessageString);
-	
-	// for (TActorIterator<ACXPlayerController> It(GetWorld()); It; ++It)
-	// {
-	// 	ACXPlayerController* CXPlayerController = *It;
-	// 	if (IsValid(CXPlayerController) == true)
-	// 	{
-	// 		CXPlayerController->ClientRPCPrintChatMessageString(InChatMessageString);
-	// 	}
-	// }
-#pragma endregion 
-	
-	// NetMulticastRPC: Server + 모든 Actor에 호출하지만? 해당 Actor를 보유하지 않은 클라이언트는 실행되지 않고 Drop된다?
-#pragma region NetMulticastRPC
-	NetMulticastRPCPrintCastMessageString(InChatMessageString);
-#pragma endregion
+	AGameModeBase* GM = UGameplayStatics::GetGameMode(this);
+	if (IsValid(GM) == true)
+	{
+		ACXGameModeBase* CXGM = Cast<ACXGameModeBase>(GM);
+		if (IsValid(CXGM) == true)
+		{
+			CXGM->PrintChatMessageString(this, InChatMessageString);
+		}
+	}
 }
 
 void ACXPlayerController::NetMulticastRPCPrintCastMessageString_Implementation(const FString& InChatMessageString)

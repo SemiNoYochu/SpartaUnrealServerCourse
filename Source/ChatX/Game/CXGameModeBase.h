@@ -6,6 +6,8 @@
 #include "GameFramework/GameModeBase.h"
 #include "CXGameModeBase.generated.h"
 
+class ACXPlayerController;
+
 /**
  * 
  */
@@ -16,4 +18,19 @@ class CHATX_API ACXGameModeBase : public AGameModeBase
 	
 public:
 	virtual void OnPostLogin(AController* NewPlayer) override;
+	
+	FString GenerateSecretNumber();
+    
+	bool IsGuessNumberString(const FString& InNumberString);
+    
+	FString JudgeResult(const FString& InSecretNumberString, const FString& InGuessNumberString);
+	
+	virtual void BeginPlay() override;
+	
+	void PrintChatMessageString(ACXPlayerController* InChattingPlayerController, const FString& InChatMessageString);
+
+protected:
+	FString SecretNumberString;
+
+	TArray<TObjectPtr<ACXPlayerController>> AllPlayerControllers;
 };
