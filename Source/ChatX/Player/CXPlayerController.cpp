@@ -7,7 +7,13 @@
 #include "CXPlayerState.h"
 #include "Game/CXGameModeBase.h"
 #include "Kismet/GameplayStatics.h"
+#include "Net/UnrealNetwork.h"
 #include "UI/CXChatInput.h"
+
+ACXPlayerController::ACXPlayerController()
+{
+	bReplicates = true;
+}
 
 void ACXPlayerController::BeginPlay()
 {
@@ -27,6 +33,15 @@ void ACXPlayerController::BeginPlay()
 		if (IsValid(ChatInputWidgetInstance) == true)
 		{
 			ChatInputWidgetInstance->AddToViewport();
+		}
+	}
+	
+	if (IsValid(NotificationTextWidgetClass) == true)
+	{
+		NotificationTextWidgetInstance = CreateWidget<UUserWidget>(this, NotificationTextWidgetClass);
+		if (IsValid(NotificationTextWidgetInstance) == true)
+		{
+			NotificationTextWidgetInstance->AddToViewport();
 		}
 	}
 }
@@ -52,6 +67,13 @@ void ACXPlayerController::SetChatMessageString(const FString& InChatMessageStrin
 void ACXPlayerController::PrintChatMessageString(const FString& InChatMessageString)
 {
 	ChatXFunctionLibrary::MyPrintString(this, InChatMessageString);
+}
+
+void ACXPlayerController::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	
+	DOREPLIFETIME(ThisClass, NotificationText);
 }
 
 void ACXPlayerController::ClientRPCPrintChatMessageString_Implementation(const FString& InChatMessageString)

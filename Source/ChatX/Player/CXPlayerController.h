@@ -17,6 +17,8 @@ class CHATX_API ACXPlayerController : public APlayerController
 	GENERATED_BODY()
 	
 public:
+	ACXPlayerController();
+	
 	virtual void BeginPlay() override;
 	
 	void SetChatMessageString(const FString& InChatMessageString);
@@ -31,6 +33,11 @@ public:
 	
 	UFUNCTION(NetMulticast, Reliable)
 	void NetMulticastRPCPrintCastMessageString(const FString& InChatMessageString);
+	
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+	
+	UPROPERTY(Replicated, BlueprintReadOnly)
+	FText NotificationText;
 
 protected:
 	UPROPERTY(EditDefaultsOnly)
@@ -38,6 +45,12 @@ protected:
 	
 	UPROPERTY()
 	TObjectPtr<UCXChatInput> ChatInputWidgetInstance;
+	
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UUserWidget> NotificationTextWidgetClass;
+	
+	UPROPERTY()
+	TObjectPtr<UUserWidget> NotificationTextWidgetInstance;
 	
 	FString ChatMessageString;
 };
